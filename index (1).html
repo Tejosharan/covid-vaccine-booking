@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VaxBook — COVID Vaccine Booking</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#f0f7ff;--white:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--primary:#1d6af5;--primary-dark:#1558d6;--primary-light:#eff6ff;--success:#16a34a;--success-bg:#f0fdf4;--warning:#d97706;--card:#fff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+header{background:var(--primary);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-weight:800;font-size:1.3rem;display:flex;align-items:center;gap:.5rem;}
+.header-tag{background:rgba(255,255,255,.15);font-size:.75rem;padding:.3rem .8rem;border-radius:50px;}
+.app{max-width:860px;margin:0 auto;padding:2rem;}
+.screen{display:none;}.screen.active{display:block;}
+.page-title{font-size:1.6rem;font-weight:800;margin-bottom:.4rem;}
+.page-sub{color:var(--muted);font-size:.9rem;margin-bottom:2rem;}
+
+/* STEPS */
+.steps{display:flex;gap:0;margin-bottom:2rem;background:var(--card);border-radius:14px;padding:.5rem;border:1px solid var(--border);}
+.step{flex:1;padding:.6rem;text-align:center;border-radius:10px;font-size:.78rem;font-weight:600;color:var(--muted);transition:.2s;}
+.step.active{background:var(--primary);color:#fff;}
+.step.done{color:var(--success);}
+
+/* FORM */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:1.75rem;margin-bottom:1.5rem;}
+.form-section-title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);margin-bottom:1rem;display:flex;align-items:center;gap:.4rem;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+.field{display:flex;flex-direction:column;gap:.35rem;}
+.field label{font-size:.78rem;font-weight:600;color:var(--muted);}
+.field input,.field select{padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-size:.9rem;font-family:inherit;outline:none;transition:.2s;background:#fff;}
+.field input:focus,.field select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(29,106,245,.1);}
+.btn-primary{background:var(--primary);color:#fff;border:none;padding:.9rem 2rem;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+.btn-primary:hover{background:var(--primary-dark);}
+.btn-outline{background:#fff;color:var(--text);border:1.5px solid var(--border);padding:.9rem 2rem;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;margin-right:.75rem;}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary);}
+
+/* CENTERS */
+.centers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:1.5rem;}
+.center-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:1.25rem;cursor:pointer;transition:.2s;}
+.center-card:hover,.center-card.selected{border-color:var(--primary);background:var(--primary-light);}
+.center-name{font-size:1rem;font-weight:700;margin-bottom:.3rem;}
+.center-address{font-size:.8rem;color:var(--muted);margin-bottom:.75rem;}
+.center-meta{display:flex;gap:.5rem;flex-wrap:wrap;}
+.tag{background:var(--bg);border:1px solid var(--border);border-radius:50px;padding:.25rem .7rem;font-size:.72rem;font-weight:600;}
+.tag.green{background:#f0fdf4;color:var(--success);border-color:#bbf7d0;}
+.tag.blue{background:var(--primary-light);color:var(--primary);border-color:#bfdbfe;}
+.dose-info{font-size:.78rem;color:var(--muted);margin-top:.5rem;}
+
+/* SLOTS */
+.slots-header{font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:.75rem;}
+.slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.5rem;margin-bottom:1.5rem;}
+.slot-btn{border:1.5px solid var(--border);background:#fff;border-radius:10px;padding:.6rem;text-align:center;cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s;font-family:inherit;}
+.slot-btn:hover:not(:disabled),.slot-btn.selected{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+.slot-btn:disabled{opacity:.4;cursor:not-allowed;background:var(--bg);}
+.slot-btn.booked{background:#fef2f2;border-color:#fecaca;color:#dc2626;cursor:not-allowed;}
+
+/* CONFIRMATION */
+.confirm-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:1.5rem;}
+.confirm-header{background:var(--primary);color:#fff;padding:1.5rem;text-align:center;}
+.confirm-header h3{font-size:1.1rem;font-weight:700;margin-bottom:.2rem;}
+.confirm-body{padding:1.5rem;}
+.confirm-row{display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;border-bottom:1px solid var(--border);}
+.confirm-row:last-child{border-bottom:none;}
+.confirm-label{font-size:.8rem;color:var(--muted);font-weight:500;}
+.confirm-value{font-size:.9rem;font-weight:700;}
+.booking-ref{text-align:center;background:var(--primary-light);border-radius:12px;padding:1rem;margin:1rem 0;}
+.booking-ref .ref-label{font-size:.75rem;color:var(--muted);margin-bottom:.3rem;}
+.booking-ref .ref-num{font-size:1.5rem;font-weight:800;color:var(--primary);letter-spacing:.08em;}
+
+/* SUCCESS */
+.success-screen{text-align:center;padding:3rem 1rem;}
+.success-icon{font-size:5rem;margin-bottom:1rem;}
+.success-screen h2{font-size:1.8rem;font-weight:800;margin-bottom:.5rem;}
+.success-screen p{color:var(--muted);margin-bottom:2rem;}
+.success-card{background:var(--success-bg);border:1.5px solid #bbf7d0;border-radius:16px;padding:1.25rem;max-width:400px;margin:0 auto 1.5rem;text-align:left;}
+.success-row{display:flex;justify-content:space-between;font-size:.85rem;padding:.3rem 0;}
+.success-row span:first-child{color:var(--muted);}
+.success-row span:last-child{font-weight:700;}
+
+/* MY BOOKINGS */
+.booking-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;}
+.booking-info .booking-center{font-weight:700;font-size:.95rem;}
+.booking-info .booking-detail{font-size:.8rem;color:var(--muted);margin-top:.2rem;}
+.status-badge{padding:.35rem .8rem;border-radius:50px;font-size:.75rem;font-weight:700;}
+.status-confirmed{background:#f0fdf4;color:var(--success);}
+.status-pending{background:#fffbeb;color:var(--warning);}
+.cancel-link{font-size:.75rem;color:#dc2626;cursor:pointer;margin-top:.3rem;display:block;}
+
+.nav-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;}
+.nav-tab{padding:.6rem 1.2rem;border-radius:50px;border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+.nav-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">💉 VaxBook</div>
+  <div class="header-tag">COVID-19 Vaccine Booking</div>
+</header>
+
+<div class="app">
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('book')">Book Appointment</button>
+    <button class="nav-tab" onclick="switchTab('my')">My Bookings</button>
+  </div>
+
+  <!-- BOOKING FLOW -->
+  <div id="tabBook">
+    <!-- STEP 1: Personal Details -->
+    <div class="screen active" id="step1">
+      <div class="steps">
+        <div class="step active" id="st1">1. Your Details</div>
+        <div class="step" id="st2">2. Choose Center</div>
+        <div class="step" id="st3">3. Select Slot</div>
+        <div class="step" id="st4">4. Confirm</div>
+      </div>
+      <div class="page-title">Personal Details</div>
+      <div class="page-sub">Please provide accurate information for your vaccine registration.</div>
+      <div class="form-card">
+        <div class="form-section-title">👤 Basic Information</div>
+        <div class="form-grid">
+          <div class="field"><label>Full Name</label><input id="fullName" type="text" placeholder="Tejo Sharan A.M" value="Tejo Sharan"/></div>
+          <div class="field"><label>Date of Birth</label><input id="dob" type="date" value="2002-05-15"/></div>
+          <div class="field"><label>Gender</label><select id="gender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+          <div class="field"><label>Mobile Number</label><input id="mobile" type="tel" placeholder="9876543210" value="9876543210"/></div>
+          <div class="field"><label>Aadhaar Number</label><input id="aadhaar" type="text" placeholder="XXXX XXXX XXXX" value="1234 5678 9012"/></div>
+          <div class="field"><label>Email Address</label><input id="email" type="email" placeholder="you@example.com" value="tejo@example.com"/></div>
+        </div>
+        <div class="form-section-title" style="margin-top:.5rem;">🏥 Health Details</div>
+        <div class="form-grid">
+          <div class="field"><label>Dose Type</label><select id="dose"><option>Dose 1 (First)</option><option>Dose 2 (Second)</option><option>Booster</option></select></div>
+          <div class="field"><label>Vaccine Preference</label><select id="vaccine"><option>Covishield</option><option>Covaxin</option><option>Corbevax</option><option>Any Available</option></select></div>
+          <div class="field"><label>Any allergies?</label><select id="allergy"><option>No known allergies</option><option>Mild allergies</option><option>Severe allergies</option></select></div>
+          <div class="field"><label>Comorbidities</label><select id="comorbid"><option>None</option><option>Diabetes</option><option>Hypertension</option><option>Heart Disease</option><option>Other</option></select></div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="goStep(2)">Continue to Centers →</button>
+    </div>
+
+    <!-- STEP 2: Choose Center -->
+    <div class="screen" id="step2">
+      <div class="steps">
+        <div class="step done" id="st1b">✓ Your Details</div>
+        <div class="step active">2. Choose Center</div>
+        <div class="step" >3. Select Slot</div>
+        <div class="step">4. Confirm</div>
+      </div>
+      <div class="page-title">Vaccination Centers</div>
+      <div class="page-sub">Select a center near you in Chennai.</div>
+      <div class="centers-grid" id="centersGrid"></div>
+      <div>
+        <button class="btn-outline" onclick="goStep(1)">← Back</button>
+        <button class="btn-primary" id="centerNextBtn" onclick="goStep(3)" disabled style="opacity:.4;cursor:not-allowed">Select a Center to Continue</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Select Slot -->
+    <div class="screen" id="step3">
+      <div class="steps">
+        <div class="step done">✓ Your Details</div>
+        <div class="step done">✓ Choose Center</div>
+        <div class="step active">3. Select Slot</div>
+        <div class="step">4. Confirm</div>
+      </div>
+      <div class="page-title">Select Date & Time</div>
+      <div class="page-sub">Choose an available appointment slot.</div>
+      <div class="form-card">
+        <div class="field" style="margin-bottom:1.5rem;">
+          <label>Appointment Date</label>
+          <input type="date" id="appointDate" onchange="renderSlots()"/>
+        </div>
+        <div class="slots-header">Available Time Slots</div>
+        <div class="slots-grid" id="slotsGrid"></div>
+      </div>
+      <div>
+        <button class="btn-outline" onclick="goStep(2)">← Back</button>
+        <button class="btn-primary" id="slotNextBtn" onclick="goStep(4)" disabled style="opacity:.4;cursor:not-allowed">Select a Slot to Continue</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Confirm -->
+    <div class="screen" id="step4">
+      <div class="steps">
+        <div class="step done">✓ Your Details</div>
+        <div class="step done">✓ Choose Center</div>
+        <div class="step done">✓ Select Slot</div>
+        <div class="step active">4. Confirm</div>
+      </div>
+      <div class="page-title">Confirm Booking</div>
+      <div class="page-sub">Review your appointment details before confirming.</div>
+      <div class="confirm-card">
+        <div class="confirm-header"><h3>Appointment Summary</h3><p style="opacity:.7;font-size:.82rem">Please verify all details</p></div>
+        <div class="confirm-body">
+          <div class="confirm-row"><span class="confirm-label">Patient Name</span><span class="confirm-value" id="cName">—</span></div>
+          <div class="confirm-row"><span class="confirm-label">Vaccine / Dose</span><span class="confirm-value" id="cVaccine">—</span></div>
+          <div class="confirm-row"><span class="confirm-label">Center</span><span class="confirm-value" id="cCenter">—</span></div>
+          <div class="confirm-row"><span class="confirm-label">Date & Time</span><span class="confirm-value" id="cDateTime">—</span></div>
+          <div class="confirm-row"><span class="confirm-label">Mobile</span><span class="confirm-value" id="cMobile">—</span></div>
+        </div>
+      </div>
+      <div>
+        <button class="btn-outline" onclick="goStep(3)">← Back</button>
+        <button class="btn-primary" onclick="confirmBooking()">✓ Confirm Booking</button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="screen" id="stepSuccess">
+      <div class="success-screen">
+        <div class="success-icon">🎉</div>
+        <h2>Booking Confirmed!</h2>
+        <p>Your vaccination appointment has been successfully booked. A confirmation will be sent to your mobile.</p>
+        <div class="booking-ref">
+          <div class="ref-label">Booking Reference Number</div>
+          <div class="ref-num" id="refNum">VXB-XXXXXX</div>
+        </div>
+        <div class="success-card" id="successSummary"></div>
+        <button class="btn-primary" onclick="newBooking()">Book Another Appointment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MY BOOKINGS TAB -->
+  <div id="tabMy" style="display:none;">
+    <div class="page-title">My Bookings</div>
+    <div class="page-sub">View and manage your appointments.</div>
+    <div id="myBookingsList"></div>
+  </div>
+</div>
+
+<script>
+const CENTERS=[
+  {id:1,name:'Apollo Hospitals',address:'Greams Road, Chennai - 600006',vaccines:['Covishield','Covaxin'],slots:45,type:'Private'},
+  {id:2,name:'Govt. Stanley Hospital',address:'Old Jail Rd, Chennai - 600001',vaccines:['Covaxin','Corbevax'],slots:80,type:'Government'},
+  {id:3,name:'MIOT International',address:'Peter\'s Road, Royapettah, Chennai',vaccines:['Covishield','Corbevax'],slots:30,type:'Private'},
+  {id:4,name:'Govt. General Hospital',address:'Park Town, Chennai - 600003',vaccines:['All vaccines'],slots:120,type:'Government'},
+  {id:5,name:'Fortis Malar Hospital',address:'52 1st Main Rd, Adyar, Chennai',vaccines:['Covishield','Covaxin'],slots:25,type:'Private'},
+  {id:6,name:'Primary Health Centre',address:'Tambaram, Chennai - 600045',vaccines:['Covaxin','Corbevax'],slots:60,type:'Government'},
+];
+const TIME_SLOTS=['9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM'];
+let state={center:null,slot:null,bookings:[]};
+
+function switchTab(tab){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tabBook').style.display=tab==='book'?'block':'none';
+  document.getElementById('tabMy').style.display=tab==='my'?'block':'none';
+  if(tab==='my')renderMyBookings();
+}
+
+function goStep(n){
+  if(n===2){renderCenters();}
+  if(n===3){
+    const d=new Date();d.setDate(d.getDate()+1);
+    document.getElementById('appointDate').min=d.toISOString().split('T')[0];
+    document.getElementById('appointDate').value=d.toISOString().split('T')[0];
+    renderSlots();
+  }
+  if(n===4)fillConfirm();
+  document.querySelectorAll('[id^=step]').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+}
+
+function renderCenters(){
+  document.getElementById('centersGrid').innerHTML=CENTERS.map(c=>`
+    <div class="center-card" id="center${c.id}" onclick="selectCenter(${c.id})">
+      <div class="center-name">${c.name}</div>
+      <div class="center-address">📍 ${c.address}</div>
+      <div class="center-meta">
+        <span class="tag ${c.type==='Government'?'green':'blue'}">${c.type}</span>
+        <span class="tag">${c.slots} slots left</span>
+      </div>
+      <div class="dose-info">Vaccines: ${c.vaccines.join(', ')}</div>
+    </div>`).join('');
+}
+
+function selectCenter(id){
+  state.center=CENTERS.find(c=>c.id===id);
+  document.querySelectorAll('.center-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('center'+id).classList.add('selected');
+  const btn=document.getElementById('centerNextBtn');
+  btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';
+  btn.textContent='Continue →';
+}
+
+function renderSlots(){
+  const bookedIdxs=[1,4,7];
+  document.getElementById('slotsGrid').innerHTML=TIME_SLOTS.map((t,i)=>{
+    const booked=bookedIdxs.includes(i);
+    return `<button class="slot-btn ${booked?'booked':''}" ${booked?'disabled':''} onclick="selectSlot('${t}',this)">${t}${booked?'<br><span style="font-size:.65rem">Booked</span>':''}</button>`;
+  }).join('');
+  state.slot=null;
+  const btn=document.getElementById('slotNextBtn');
+  btn.disabled=true;btn.style.opacity='.4';btn.style.cursor='not-allowed';
+  btn.textContent='Select a Slot to Continue';
+}
+
+function selectSlot(t,el){
+  state.slot=t;
+  document.querySelectorAll('.slot-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  const btn=document.getElementById('slotNextBtn');
+  btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';
+  btn.textContent='Continue to Confirm →';
+}
+
+function fillConfirm(){
+  document.getElementById('cName').textContent=document.getElementById('fullName').value;
+  document.getElementById('cVaccine').textContent=document.getElementById('vaccine').value+' — '+document.getElementById('dose').value;
+  document.getElementById('cCenter').textContent=state.center?.name||'—';
+  document.getElementById('cDateTime').textContent=document.getElementById('appointDate').value+' at '+state.slot;
+  document.getElementById('cMobile').textContent=document.getElementById('mobile').value;
+}
+
+function confirmBooking(){
+  const ref='VXB-'+Math.random().toString(36).substr(2,6).toUpperCase();
+  const booking={
+    ref,name:document.getElementById('fullName').value,
+    center:state.center?.name,vaccine:document.getElementById('vaccine').value,
+    dose:document.getElementById('dose').value,date:document.getElementById('appointDate').value,
+    time:state.slot,status:'Confirmed'
+  };
+  state.bookings.unshift(booking);
+  document.getElementById('refNum').textContent=ref;
+  document.getElementById('successSummary').innerHTML=`
+    <div class="success-row"><span>Center</span><span>${booking.center}</span></div>
+    <div class="success-row"><span>Vaccine</span><span>${booking.vaccine} — ${booking.dose}</span></div>
+    <div class="success-row"><span>Date</span><span>${booking.date}</span></div>
+    <div class="success-row"><span>Time</span><span>${booking.time}</span></div>`;
+  document.querySelectorAll('[id^=step]').forEach(s=>s.classList.remove('active'));
+  document.getElementById('stepSuccess').classList.add('active');
+}
+
+function newBooking(){
+  state.center=null;state.slot=null;
+  goStep(1);
+}
+
+function renderMyBookings(){
+  const el=document.getElementById('myBookingsList');
+  if(state.bookings.length===0){
+    el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--muted);"><div style="font-size:3rem;margin-bottom:.75rem;">💉</div><div>No bookings yet. Book your first appointment!</div></div>';
+    return;
+  }
+  el.innerHTML=state.bookings.map((b,i)=>`
+    <div class="booking-item">
+      <div class="booking-info">
+        <div class="booking-center">${b.center}</div>
+        <div class="booking-detail">${b.vaccine} · ${b.dose} · ${b.date} at ${b.time}</div>
+        <div class="booking-detail">Ref: ${b.ref}</div>
+        <span class="cancel-link" onclick="cancelBooking(${i})">Cancel Appointment</span>
+      </div>
+      <div><span class="status-badge status-${b.status.toLowerCase()}">${b.status==='Confirmed'?'✓ ':''} ${b.status}</span></div>
+    </div>`).join('');
+}
+
+function cancelBooking(i){
+  if(confirm('Cancel this appointment?')){state.bookings[i].status='Cancelled';renderMyBookings();}}
+</script>
+</body>
+</html>
